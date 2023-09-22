@@ -4,10 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const mongoose = require('mongoose');
 
-
-const DB_USER = process.env.MONGODB_USER
-const DB_PASS = process.env.MONGODB_PW
-const DB_URI = `mongodb+srv://${DB_USER}:${DB_PASS}@fullstack.ku7dckk.mongodb.net/?retryWrites=true&w=majority`
+const DB_URI = process.env.MONGODB_URI
 
 
 mongoose.set('strictQuery', false);

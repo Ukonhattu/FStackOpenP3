@@ -1,69 +1,55 @@
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-  }
-
 const express = require('express')
-
 const app = express()
-
 const morgan = require('morgan')
+const Person = require('./models/Person')
 
 //configure morgan to log the response body
 morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
 app.use(express.static('dist'))
 
 
 app.use(express.json())
 app.use(morgan('tiny'))
 
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-5323523"
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345"
-    },
-    {
-        id: 4,
-        name: "Mary Poppendieck",
-        number: "39-23-6423122"
-    }
-]
 
 app.get('/api/persons', (_, res) => {
-    res.json(persons)
+    Person.find({}).then(persons => {
+        res.json(persons)
+    })
 })
 
 app.get('/api/info', (_, res) => { 
     const date = new Date()
-    res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${date}</p>`)
+    Person.find({}).count().then(count => {
+        res.send(`<p>Phonebook has info for ${count} people</p><p>${date}</p>`)
+    })
+   
 })
 
 app.get('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
-    const person = persons.find(p => p.id === id)
-    
-    if (person) {
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
+    Person.findOne({id: id}).exec().then(person => {
+        if(person) {
+            res.json(person)
+        } else {
+            res.status(404).end()
+        }
+        
+    })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
-    persons = persons.filter(p => p.id !== id)
-    res.status(204).end()
+    Person.findOneAndDelete({id: id}).exec().then(person => {
+        if(person) {
+            res.status(204).end()
+        } else {
+            res.status(404).end()
+        }
+        
+    })
 })
 
 app.post('/api/persons', (req, res) => {
@@ -82,21 +68,29 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    if (persons.find(p => p.name === name)) {
-        return res.status(400).json({
-            error: 'name must be unique'
-        })
-    }
+    Person.findOne({name: name}).exec().then(person => {
+        if(person) {
+            return res.status(400).json({
+                error: 'name must be unique'
+            })
+        } else {
+            const person = new Person({
+                name: name,
+                number: number,
+                id: Math.floor(Math.random() * 10000)
+            })
+        
+            Person.create(person).then(person => {
+                res.json(person)
+                })
+                .catch(error => {
+                console.log(error)
+            })
+        }
+    })
 
-    const person = {
-        id: Math.floor(Math.random() * 10000),
-        name: name,
-        number: number
-    }
 
-    persons = persons.concat(person)
-
-    res.json(person)
+    
 })
 
 const PORT = process.env.PORT || 3001
