@@ -1,13 +1,12 @@
 if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-  }
+    require('dotenv').config()
+}
 
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const DB_URI = process.env.MONGODB_URI
 
-
-mongoose.set('strictQuery', false);
+mongoose.set('strictQuery', false)
 mongoose.connect(DB_URI)
 
 const personSchema = new mongoose.Schema({
@@ -18,10 +17,10 @@ const personSchema = new mongoose.Schema({
 
 const Person = mongoose.model('Person', personSchema)
 
-const add_person = (name, number) => {
+const addPerson = (name, number) => {
     const person = new Person({
-        name: name,
-        number: number,
+        name,
+        number,
         id: Math.floor(Math.random() * 10000)
     })
     person.save().then(result => {
@@ -30,21 +29,21 @@ const add_person = (name, number) => {
     })
 }
 
-const print_persons = () => {
+const printPersons = () => {
     Person.find({}).then(result => {
         result.forEach(person => {
             console.log(person)
         })
         mongoose.connection.close()
-    }) 
+    })
 }
 if (process.argv.length === 4) {
     const name = process.argv[2]
     const number = process.argv[3]
-    add_person(name, number)
+    addPerson(name, number)
 } else if (process.argv.length === 2) {
-    print_persons()
+    printPersons()
 } else {
-    console.log("Invalid number of arguments")
+    console.log('Invalid number of arguments')
     process.exit(1)
 }

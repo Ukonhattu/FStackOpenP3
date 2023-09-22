@@ -49,6 +49,9 @@ const App = () => {
       personService.create(newPerson).then(returnedPerson => {
         setPersons(persons.concat(returnedPerson))
         showMessage(Message({ text: `Added ${newName}`, type: MessageType.SUCCESS }))
+      }).catch(error => {
+        console.log(error)
+        showMessage(Message({ text: error.response.data.error, type: MessageType.ERROR }))
       })
   }
     setNewName('')
